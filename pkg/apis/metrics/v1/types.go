@@ -22,12 +22,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// ResourceRule describes a rule for querying resource metrics API results.
+// The name of the resource rule reflects the actual resource, i.e. cpu, memory.
+//
 // +genclient
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// ResourceRule describes a rule for querying resource metrics API results.
-// The name of the resource rule reflects the actual resource, i.e. cpu, memory.
 type ResourceRule struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -36,6 +36,8 @@ type ResourceRule struct {
 }
 
 // ResourceRuleList is a list of ResourceRules.
+//
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ResourceRuleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

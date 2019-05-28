@@ -41,5 +41,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // ResourceRules returns a ResourceRuleInformer.
 func (v *version) ResourceRules() ResourceRuleInformer {
-	return &resourceRuleInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+	return &resourceRuleInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

@@ -6,8 +6,14 @@ GOPKG=github.com/s-urbaniak/prometheus-adapter
 
 GEN_ARGS=--v=1 --logtostderr --go-header-file .header
 
+REGISTER_TARGET:=pkg/apis/metrics/v1/zz_generated.register.go
+$(REGISTER_TARGET):
+	register-gen \
+	$(GEN_ARGS) \
+	--input-dirs "$(GOPKG)/pkg/apis/metrics/v1"
+
 DEEPCOPY_TARGET:=pkg/apis/metrics/v1/zz_generated.deepcopy.go
-$(DEEPCOPY_TARGET):
+$(DEEPCOPY_TARGET): $(REGISTER_TARGET)
 	deepcopy-gen \
 	$(GEN_ARGS) \
 	--input-dirs      "$(GOPKG)/pkg/apis/metrics/v1" \
@@ -51,6 +57,7 @@ build-image:
 
 .PHONY: all
 all: \
+	$(REGISTER_TARGET) \
 	$(DEEPCOPY_TARGET) \
 	$(CLIENT_TARGET) \
 	$(LISTER_TARGET) \
@@ -59,4 +66,6 @@ all: \
 .PHONY: clean
 clean:
 	rm -rf pkg/clientset pkg/informers pkg/listers
-	rm -f pkg/apis/metrics/v1/zz_generated.deepcopy.go
+	rm -f \
+		$(DEEPCOPY_TARGET) \
+		$(REGISTER_TARGET)
