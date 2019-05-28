@@ -4,17 +4,18 @@ FROM golang:${GOLANG_VERSION}
 
 ARG CODE_GENERATOR_VERSION
 ARG KUBE_OPENAPI_VERSION
+ENV GO111MODULE=on
 
 WORKDIR /go/src/github.com/kubernetes
-RUN curl -OL# https://github.com/kubernetes/code-generator/archive/${CODE_GENERATOR_VERSION}.tar.gz
-RUN tar xvzf ${CODE_GENERATOR_VERSION}.tar.gz
-RUN cd code-generator-${CODE_GENERATOR_VERSION} && \
-    GO111MODULE=on go install ./cmd/...
+RUN curl -OL# https://github.com/kubernetes/code-generator/archive/${CODE_GENERATOR_VERSION}.tar.gz && \
+    tar xvzf ${CODE_GENERATOR_VERSION}.tar.gz && \
+    cd code-generator-${CODE_GENERATOR_VERSION} && \
+    go install ./cmd/...
 
-RUN curl -OL# https://github.com/kubernetes/kube-openapi/archive/${KUBE_OPENAPI_VERSION}.tar.gz
-RUN tar xvzf ${KUBE_OPENAPI_VERSION}.tar.gz
-RUN cd kube-openapi-${KUBE_OPENAPI_VERSION} && \
-    GO111MODULE=on go install ./cmd/...
+RUN curl -OL# https://github.com/kubernetes/kube-openapi/archive/${KUBE_OPENAPI_VERSION}.tar.gz && \
+    tar xvzf ${KUBE_OPENAPI_VERSION}.tar.gz && \
+    cd kube-openapi-${KUBE_OPENAPI_VERSION} && \
+    go install ./cmd/...
 
 FROM golang:${GOLANG_VERSION}
 COPY --from=0 /go/bin/* /usr/local/bin/
