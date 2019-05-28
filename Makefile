@@ -3,6 +3,7 @@ CODE_GENERATOR_VERSION:=kubernetes-1.14.2
 KUBE_OPENAPI_VERSION:=a01b7d5d6c2258c80a4a10070f3dee9cd575d9c7
 
 GOPKG=github.com/s-urbaniak/prometheus-adapter
+REPO?=quay.io/surbania/code-generator
 
 GEN_ARGS=--v=1 --logtostderr --go-header-file .header
 
@@ -52,7 +53,7 @@ build-image:
 	--build-arg CODE_GENERATOR_VERSION=$(CODE_GENERATOR_VERSION) \
 	--build-arg KUBE_OPENAPI_VERSION=$(KUBE_OPENAPI_VERSION) \
 	-f Dockerfile.build \
-	-t quay.io/surbania/code-generator:latest \
+	-t $(REPO):latest \
 	.
 
 .PHONY: all
