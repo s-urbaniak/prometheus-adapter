@@ -21,7 +21,7 @@ package v1
 import (
 	"time"
 
-	v1 "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics.prometheus.io/v1"
+	v1 "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1"
 	scheme "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"

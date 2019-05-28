@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	metricsprometheusiov1 "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics.prometheus.io/v1"
+	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -38,19 +38,19 @@ var resourcerulesResource = schema.GroupVersionResource{Group: "metrics.promethe
 var resourcerulesKind = schema.GroupVersionKind{Group: "metrics.prometheus.io", Version: "v1", Kind: "ResourceRule"}
 
 // Get takes name of the resourceRule, and returns the corresponding resourceRule object, and an error if there is any.
-func (c *FakeResourceRules) Get(name string, options v1.GetOptions) (result *metricsprometheusiov1.ResourceRule, err error) {
+func (c *FakeResourceRules) Get(name string, options v1.GetOptions) (result *metricsv1.ResourceRule, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootGetAction(resourcerulesResource, name), &metricsprometheusiov1.ResourceRule{})
+		Invokes(testing.NewRootGetAction(resourcerulesResource, name), &metricsv1.ResourceRule{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*metricsprometheusiov1.ResourceRule), err
+	return obj.(*metricsv1.ResourceRule), err
 }
 
 // List takes label and field selectors, and returns the list of ResourceRules that match those selectors.
-func (c *FakeResourceRules) List(opts v1.ListOptions) (result *metricsprometheusiov1.ResourceRuleList, err error) {
+func (c *FakeResourceRules) List(opts v1.ListOptions) (result *metricsv1.ResourceRuleList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(resourcerulesResource, resourcerulesKind, opts), &metricsprometheusiov1.ResourceRuleList{})
+		Invokes(testing.NewRootListAction(resourcerulesResource, resourcerulesKind, opts), &metricsv1.ResourceRuleList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -59,8 +59,8 @@ func (c *FakeResourceRules) List(opts v1.ListOptions) (result *metricsprometheus
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &metricsprometheusiov1.ResourceRuleList{ListMeta: obj.(*metricsprometheusiov1.ResourceRuleList).ListMeta}
-	for _, item := range obj.(*metricsprometheusiov1.ResourceRuleList).Items {
+	list := &metricsv1.ResourceRuleList{ListMeta: obj.(*metricsv1.ResourceRuleList).ListMeta}
+	for _, item := range obj.(*metricsv1.ResourceRuleList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
 		}
@@ -75,29 +75,29 @@ func (c *FakeResourceRules) Watch(opts v1.ListOptions) (watch.Interface, error) 
 }
 
 // Create takes the representation of a resourceRule and creates it.  Returns the server's representation of the resourceRule, and an error, if there is any.
-func (c *FakeResourceRules) Create(resourceRule *metricsprometheusiov1.ResourceRule) (result *metricsprometheusiov1.ResourceRule, err error) {
+func (c *FakeResourceRules) Create(resourceRule *metricsv1.ResourceRule) (result *metricsv1.ResourceRule, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(resourcerulesResource, resourceRule), &metricsprometheusiov1.ResourceRule{})
+		Invokes(testing.NewRootCreateAction(resourcerulesResource, resourceRule), &metricsv1.ResourceRule{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*metricsprometheusiov1.ResourceRule), err
+	return obj.(*metricsv1.ResourceRule), err
 }
 
 // Update takes the representation of a resourceRule and updates it. Returns the server's representation of the resourceRule, and an error, if there is any.
-func (c *FakeResourceRules) Update(resourceRule *metricsprometheusiov1.ResourceRule) (result *metricsprometheusiov1.ResourceRule, err error) {
+func (c *FakeResourceRules) Update(resourceRule *metricsv1.ResourceRule) (result *metricsv1.ResourceRule, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(resourcerulesResource, resourceRule), &metricsprometheusiov1.ResourceRule{})
+		Invokes(testing.NewRootUpdateAction(resourcerulesResource, resourceRule), &metricsv1.ResourceRule{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*metricsprometheusiov1.ResourceRule), err
+	return obj.(*metricsv1.ResourceRule), err
 }
 
 // Delete takes name of the resourceRule and deletes it. Returns an error if one occurs.
 func (c *FakeResourceRules) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(resourcerulesResource, name), &metricsprometheusiov1.ResourceRule{})
+		Invokes(testing.NewRootDeleteAction(resourcerulesResource, name), &metricsv1.ResourceRule{})
 	return err
 }
 
@@ -105,16 +105,16 @@ func (c *FakeResourceRules) Delete(name string, options *v1.DeleteOptions) error
 func (c *FakeResourceRules) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	action := testing.NewRootDeleteCollectionAction(resourcerulesResource, listOptions)
 
-	_, err := c.Fake.Invokes(action, &metricsprometheusiov1.ResourceRuleList{})
+	_, err := c.Fake.Invokes(action, &metricsv1.ResourceRuleList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched resourceRule.
-func (c *FakeResourceRules) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *metricsprometheusiov1.ResourceRule, err error) {
+func (c *FakeResourceRules) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *metricsv1.ResourceRule, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(resourcerulesResource, name, pt, data, subresources...), &metricsprometheusiov1.ResourceRule{})
+		Invokes(testing.NewRootPatchSubresourceAction(resourcerulesResource, name, pt, data, subresources...), &metricsv1.ResourceRule{})
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*metricsprometheusiov1.ResourceRule), err
+	return obj.(*metricsv1.ResourceRule), err
 }

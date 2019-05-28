@@ -20,8 +20,8 @@ package fake
 
 import (
 	clientset "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned"
-	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics.prometheus.io/v1"
-	fakemetricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics.prometheus.io/v1/fake"
+	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1"
+	fakemetricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
