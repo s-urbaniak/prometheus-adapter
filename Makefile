@@ -3,11 +3,10 @@ CODE_GENERATOR_VERSION:=kubernetes-1.14.2
 KUBE_OPENAPI_VERSION:=a01b7d5d6c2258c80a4a10070f3dee9cd575d9c7
 
 GOPKG=github.com/s-urbaniak/prometheus-adapter
-GROUP=metrics
 
 GEN_ARGS=--v=1 --logtostderr --go-header-file .header
 
-DEEPCOPY_TARGET:=pkg/apis/$(GROUP)/v1/zz_generated.deepcopy.go
+DEEPCOPY_TARGET:=pkg/apis/metrics/v1/zz_generated.deepcopy.go
 $(DEEPCOPY_TARGET):
 	deepcopy-gen \
 	$(GEN_ARGS) \
@@ -15,21 +14,30 @@ $(DEEPCOPY_TARGET):
 	--bounding-dirs   "$(GOPKG)/pkg/apis/metrics" \
 	--output-file-base zz_generated.deepcopy
 
-CLIENT_TARGET:=pkg/client/clientset/versioned/clientset.go
-$(CLIENT_TARGET):
+CLIENT_TARGET:=pkg/clientset/versioned/clientset.go
+$(CLIENT_TARGET): $(DEEPCOPY_TARGET)
 	client-gen \
 	$(GEN_ARGS) \
 	--clientset-name "versioned" \
 	--input-base     "" \
 	--input          $(GOPKG)/pkg/apis/metrics/v1 \
-	--clientset-path $(GOPKG)/pkg/client/clientset
+	--clientset-path $(GOPKG)/pkg/clientset
 
-LISTER_TARGET:=pkg/client/listers/$(GROUP)/v1/resourcerule.go
+LISTER_TARGET:=pkg/listers/metrics/v1/resourcerule.go
 $(LISTER_TARGET):
 	lister-gen \
 	$(GEN_ARGS) \
 	--input-dirs     "$(GOPKG)/pkg/apis/metrics/v1" \
-	--output-package "$(GOPKG)/pkg/client/listers"
+	--output-package "$(GOPKG)/pkg/listers"
+
+INFORMER_TARGET := pkg/informers/externalversions/metrics/interface.go
+$(INFORMER_TARGET): $(LISTER_TARGET) $(CLIENT_TARGET)
+	informer-gen \
+	$(GEN_ARGS) \
+	--input-dirs                  "$(GOPKG)/pkg/apis/metrics/v1" \
+	--versioned-clientset-package "$(GOPKG)/pkg/clientset/versioned" \
+	--listers-package             "$(GOPKG)/pkg/listers" \
+	--output-package              "$(GOPKG)/pkg/informers"
 
 .PHONY: build-image
 build-image:
@@ -45,9 +53,10 @@ build-image:
 all: \
 	$(DEEPCOPY_TARGET) \
 	$(CLIENT_TARGET) \
-	$(LISTER_TARGET)
+	$(LISTER_TARGET) \
+	$(INFORMER_TARGET)
 
 .PHONY: clean
 clean:
-	rm -rf pkg/client
+	rm -rf pkg/clientset pkg/informers pkg/listers
 	rm -f pkg/apis/metrics/v1/zz_generated.deepcopy.go
