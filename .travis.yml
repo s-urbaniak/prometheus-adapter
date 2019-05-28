@@ -14,6 +14,8 @@ services:
 - docker
 jobs:
   include:
-  - stage: ALL
-    script: make all
-
+  - stage: Generate
+    script:
+      - make build-image
+      - ./scripts/docker-build.sh make clean all
+      - git diff --exit-code
