@@ -9,6 +9,7 @@ This adapter is therefore suitable for use with the autoscaling/v2 Horizontal Po
 It can also replace the [metrics server](https://github.com/kubernetes-incubator/metrics-server) on clusters that already run Prometheus and collect the appropriate metrics.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/s-urbaniak/prometheus-adapter)](https://goreportcard.com/report/github.com/s-urbaniak/prometheus-adapter)
+[![Build Status](https://travis-ci.com/s-urbaniak/prometheus-adapter.svg?branch=master)](https://travis-ci.com/s-urbaniak/prometheus-adapter)
 
 ## FAQ
 
