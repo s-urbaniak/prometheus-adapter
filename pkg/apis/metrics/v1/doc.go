@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// +k8s:deepcopy-gen=package
-
 // Package v1 is the v1 version of the API.
+//
+// +k8s:deepcopy-gen=package
 // +groupName=metrics.prometheus.io
 package v1

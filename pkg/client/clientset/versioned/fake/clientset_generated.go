@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/s-urbaniak/prometheus-adapter/pkg/clientset/versioned"
-	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/clientset/versioned/typed/metrics/v1"
-	fakemetricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/clientset/versioned/typed/metrics/v1/fake"
+	clientset "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned"
+	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1"
+	fakemetricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

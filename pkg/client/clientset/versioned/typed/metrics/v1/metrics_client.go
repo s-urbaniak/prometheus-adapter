@@ -20,7 +20,7 @@ package v1
 
 import (
 	v1 "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1"
-	"github.com/s-urbaniak/prometheus-adapter/pkg/clientset/versioned/scheme"
+	"github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )

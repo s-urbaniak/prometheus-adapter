@@ -20,30 +20,30 @@ $(DEEPCOPY_TARGET): $(REGISTER_TARGET)
 	--bounding-dirs   "$(GOPKG)/pkg/apis/metrics" \
 	--output-file-base zz_generated.deepcopy
 
-CLIENT_TARGET:=pkg/clientset/versioned/clientset.go
+CLIENT_TARGET:=pkg/client/clientset/versioned/clientset.go
 $(CLIENT_TARGET): $(DEEPCOPY_TARGET)
 	client-gen \
 	$(GEN_ARGS) \
 	--clientset-name "versioned" \
 	--input-base     "" \
 	--input          $(GOPKG)/pkg/apis/metrics/v1 \
-	--clientset-path $(GOPKG)/pkg/clientset
+	--clientset-path $(GOPKG)/pkg/client/clientset
 
-LISTER_TARGET:=pkg/listers/metrics/v1/resourcerule.go
+LISTER_TARGET:=pkg/client/listers/metrics/v1/resourcerule.go
 $(LISTER_TARGET):
 	lister-gen \
 	$(GEN_ARGS) \
 	--input-dirs     "$(GOPKG)/pkg/apis/metrics/v1" \
-	--output-package "$(GOPKG)/pkg/listers"
+	--output-package "$(GOPKG)/pkg/client/listers"
 
-INFORMER_TARGET := pkg/informers/externalversions/metrics/interface.go
+INFORMER_TARGET := pkg/client/informers/externalversions/metrics/interface.go
 $(INFORMER_TARGET): $(LISTER_TARGET) $(CLIENT_TARGET)
 	informer-gen \
 	$(GEN_ARGS) \
 	--input-dirs                  "$(GOPKG)/pkg/apis/metrics/v1" \
-	--versioned-clientset-package "$(GOPKG)/pkg/clientset/versioned" \
-	--listers-package             "$(GOPKG)/pkg/listers" \
-	--output-package              "$(GOPKG)/pkg/informers"
+	--versioned-clientset-package "$(GOPKG)/pkg/client/clientset/versioned" \
+	--listers-package             "$(GOPKG)/pkg/client/listers" \
+	--output-package              "$(GOPKG)/pkg/client/informers"
 
 .PHONY: build-image
 build-image:
@@ -65,7 +65,7 @@ all: \
 
 .PHONY: clean
 clean:
-	rm -rf pkg/clientset pkg/informers pkg/listers
+	rm -rf pkg/client
 	rm -f \
 		$(DEEPCOPY_TARGET) \
 		$(REGISTER_TARGET)

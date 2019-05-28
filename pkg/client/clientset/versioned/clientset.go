@@ -19,7 +19,7 @@ limitations under the License.
 package versioned
 
 import (
-	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/clientset/versioned/typed/metrics/v1"
+	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

@@ -22,9 +22,9 @@ import (
 	time "time"
 
 	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1"
-	versioned "github.com/s-urbaniak/prometheus-adapter/pkg/clientset/versioned"
-	internalinterfaces "github.com/s-urbaniak/prometheus-adapter/pkg/informers/externalversions/internalinterfaces"
-	v1 "github.com/s-urbaniak/prometheus-adapter/pkg/listers/metrics/v1"
+	versioned "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned"
+	internalinterfaces "github.com/s-urbaniak/prometheus-adapter/pkg/client/informers/externalversions/internalinterfaces"
+	v1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/listers/metrics/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
