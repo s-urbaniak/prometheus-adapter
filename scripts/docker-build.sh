@@ -6,6 +6,6 @@ docker run --rm -it \
 	--user="$(id -u):$(id -g)" \
 	--volume "${PWD}:/go/src/${GOPKG}" \
 	-w "/go/src/${GOPKG}" \
-	quay.io/surbania/code-generator:latest \
+	quay.io/surbania/code-generator:v1.14.2 \
 	\
 	$@
