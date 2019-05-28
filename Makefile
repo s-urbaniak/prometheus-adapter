@@ -5,7 +5,7 @@ KUBE_OPENAPI_VERSION:=a01b7d5d6c2258c80a4a10070f3dee9cd575d9c7
 GOPKG=github.com/s-urbaniak/prometheus-adapter
 REPO?=quay.io/surbania/code-generator
 
-GEN_ARGS=--v=1 --logtostderr --go-header-file .header
+GEN_ARGS=--v=1 --logtostderr --go-header-file scripts/boilerplate.txt
 
 REGISTER_TARGET:=pkg/apis/metrics/v1/zz_generated.register.go
 $(REGISTER_TARGET):
