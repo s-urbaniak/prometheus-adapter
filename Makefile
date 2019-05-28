@@ -1,5 +1,5 @@
 GOLANG_VERSION:=1.12.5
-CODE_GENERATOR_VERSION:=kubernetes-1.14.2
+CODE_GENERATOR_VERSION:=1.14.2
 KUBE_OPENAPI_VERSION:=a01b7d5d6c2258c80a4a10070f3dee9cd575d9c7
 
 GOPKG=github.com/s-urbaniak/prometheus-adapter
@@ -50,10 +50,10 @@ $(INFORMER_TARGET): $(LISTER_TARGET) $(CLIENT_TARGET)
 build-image:
 	docker build \
 	--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-	--build-arg CODE_GENERATOR_VERSION=$(CODE_GENERATOR_VERSION) \
+	--build-arg CODE_GENERATOR_VERSION=kubernetes-$(CODE_GENERATOR_VERSION) \
 	--build-arg KUBE_OPENAPI_VERSION=$(KUBE_OPENAPI_VERSION) \
 	-f Dockerfile.build \
-	-t $(REPO):latest \
+	-t $(REPO):v$(CODE_GENERATOR_VERSION) \
 	.
 
 .PHONY: all
