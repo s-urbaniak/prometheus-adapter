@@ -327,13 +327,13 @@ func schema_pkg_apis_metrics_v1_ResourceRule(ref common.ReferenceCallback) commo
 							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
 						},
 					},
-					"Spec": {
+					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1.ResourceRuleSpec"),
 						},
 					},
 				},
-				Required: []string{"Spec"},
+				Required: []string{"spec"},
 			},
 		},
 		Dependencies: []string{
@@ -419,13 +419,19 @@ func schema_pkg_apis_metrics_v1_ResourceRuleSpec(ref common.ReferenceCallback) c
 							},
 						},
 					},
+					"containerLabel": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"window": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
 						},
 					},
 				},
-				Required: []string{"nodeQuery", "podQuery", "labels", "window"},
+				Required: []string{"nodeQuery", "podQuery", "labels", "containerLabel", "window"},
 			},
 		},
 		Dependencies: []string{

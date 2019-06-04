@@ -21,7 +21,9 @@ import (
 )
 
 const (
-	ResourceRules = "resourcerules"
+	ResourceRuleSpecName = "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1.ResourceRule"
+	ResourceRulesKind    = "ResourceRule"
+	ResourceRules        = "resourcerules"
 )
 
 // ResourceRule describes a rule for querying resource metrics API results.
@@ -35,7 +37,7 @@ type ResourceRule struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec ResourceRuleSpec
+	Spec ResourceRuleSpec `json:"spec"`
 }
 
 // ResourceRuleList is a list of ResourceRules.
@@ -50,10 +52,11 @@ type ResourceRuleList struct {
 
 // +k8s:openapi-gen=true
 type ResourceRuleSpec struct {
-	NodeQuery string                   `json:"nodeQuery"`
-	PodQuery  string                   `json:"podQuery"`
-	Labels    map[string]GroupResource `json:"labels"`
-	Window    metav1.Duration          `json:"window"`
+	NodeQuery      string                   `json:"nodeQuery"`
+	PodQuery       string                   `json:"podQuery"`
+	Labels         map[string]GroupResource `json:"labels"`
+	ContainerLabel string                   `json:"containerLabel"`
+	Window         metav1.Duration          `json:"window"`
 }
 
 // +k8s:openapi-gen=true

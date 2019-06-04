@@ -12,7 +12,7 @@ import (
 	prommodel "github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/promql"
-	metricsv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1"
+	metricsclientv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1"
 	adapterql "github.com/s-urbaniak/prometheus-adapter/pkg/promql"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -30,16 +30,16 @@ var (
 )
 
 type provider struct {
-	promclient prom.API
-	client     metricsv1.ResourceRuleInterface
-	mapper     meta.RESTMapper
+	promclient    prom.API
+	metricsclient metricsclientv1.ResourceRuleInterface
+	mapper        meta.RESTMapper
 }
 
-func NewProvider(resourceClient metricsv1.ResourceRuleInterface, mapper meta.RESTMapper, promclient prom.API) *provider {
+func NewProvider(resourceClient metricsclientv1.ResourceRuleInterface, mapper meta.RESTMapper, promclient prom.API) *provider {
 	return &provider{
-		client:     resourceClient,
-		mapper:     mapper,
-		promclient: promclient,
+		metricsclient: resourceClient,
+		mapper:        mapper,
+		promclient:    promclient,
 	}
 }
 
@@ -48,7 +48,7 @@ func (p *provider) GetContainerMetrics(pods ...apitypes.NamespacedName) ([]resou
 		return nil, nil, nil
 	}
 
-	cpuRule, err := p.client.Get(string(corev1.ResourceCPU), metav1.GetOptions{})
+	cpuRule, err := p.metricsclient.Get(string(corev1.ResourceCPU), metav1.GetOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("error loading cpu resource rules: %v", err)
 	}
