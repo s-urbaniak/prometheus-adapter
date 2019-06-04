@@ -19,9 +19,10 @@ It can also replace the [metrics server](https://github.com/kubernetes-incubator
 ```
 $ cat go.mod
 ...
-	k8s.io/api kubernetes-1.14.2
+replace (
 	k8s.io/apimachinery kubernetes-1.14.2
 	k8s.io/client-go v11.0.0
+)
 ...
 ```
 

@@ -1,7 +1,6 @@
 package promql
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -54,24 +53,24 @@ func hasExpression(want string) checkFunc {
 var tests = []struct {
 	name       string
 	expression string
-	matchers   Matchers
+	enforcer   *Enforcer
 	check      checkFunc
 }{
 	{
 		name:       "expressions",
-		expression: `round(metric1{label="baz",pod_name="foo",namespace="bar"},3)`,
-		matchers: Matchers{
-			"namespace": &labels.Matcher{
+		expression: `round(metric1{label="baz",pod="foo",namespace="bar"},3)`,
+		enforcer: NewEnforcer(
+			&labels.Matcher{
 				Name:  "namespace",
 				Type:  labels.MatchEqual,
 				Value: "NS",
 			},
-			"pod_name": &labels.Matcher{
+			&labels.Matcher{
 				Name:  "pod",
 				Type:  labels.MatchEqual,
 				Value: "POD",
 			},
-		},
+		),
 		check: checks(
 			hasError(nil),
 			hasExpression(`round(metric1{label="baz",namespace="NS",pod="POD"}, 3)`),
@@ -80,19 +79,19 @@ var tests = []struct {
 
 	{
 		name:       "aggregate",
-		expression: `sum by (pod_name) (metric1{label="baz",pod_name="foo",namespace="bar"})`,
-		matchers: Matchers{
-			"namespace": &labels.Matcher{
+		expression: `sum by (pod) (metric1{label="baz",pod="foo",namespace="bar"})`,
+		enforcer: NewEnforcer(
+			&labels.Matcher{
 				Name:  "namespace",
 				Type:  labels.MatchEqual,
 				Value: "NS",
 			},
-			"pod_name": &labels.Matcher{
+			&labels.Matcher{
 				Name:  "pod",
 				Type:  labels.MatchEqual,
 				Value: "POD",
 			},
-		},
+		),
 		check: checks(
 			hasError(nil),
 			hasExpression(`sum by(pod) (metric1{label="baz",namespace="NS",pod="POD"})`),
@@ -101,19 +100,19 @@ var tests = []struct {
 
 	{
 		name:       "binary expression",
-		expression: `metric1{pod_name="baz"} + sum by (pod_name)(metric2{label="baz",pod_name="foo",namespace="bar"})`,
-		matchers: Matchers{
-			"namespace": &labels.Matcher{
+		expression: `metric1{pod="baz"} + sum by (pod)(metric2{label="baz",pod="foo",namespace="bar"})`,
+		enforcer: NewEnforcer(
+			&labels.Matcher{
 				Name:  "namespace",
 				Type:  labels.MatchEqual,
 				Value: "NS",
 			},
-			"pod_name": &labels.Matcher{
+			&labels.Matcher{
 				Name:  "pod",
 				Type:  labels.MatchEqual,
 				Value: "POD",
 			},
-		},
+		),
 		check: checks(
 			hasError(nil),
 			hasExpression(`metric1{pod="POD"} + sum by(pod) (metric2{label="baz",namespace="NS",pod="POD"})`),
@@ -122,21 +121,21 @@ var tests = []struct {
 
 	{
 		name:       "binary expression with vector matching",
-		expression: `metric1{pod_name="baz"} + on(pod_name,namespace) sum by (pod_name) (metric2{label="baz",pod_name="foo",namespace="bar"})`,
-		matchers: Matchers{
-			"namespace": &labels.Matcher{
+		expression: `metric1{pod="baz"} + on(pod,namespace) sum by (pod) (metric2{label="baz",pod="foo",namespace="bar"})`,
+		enforcer: NewEnforcer(
+			&labels.Matcher{
 				Name:  "namespace",
 				Type:  labels.MatchEqual,
 				Value: "NS",
 			},
-			"pod_name": &labels.Matcher{
+			&labels.Matcher{
 				Name:  "pod",
 				Type:  labels.MatchEqual,
 				Value: "POD",
 			},
-		},
+		),
 		check: checks(
-			hasError(errors.New("foo")),
+			hasError(nil),
 			hasExpression(`metric1{pod="POD"} + on(pod, namespace) sum by(pod) (metric2{label="baz",namespace="NS",pod="POD"})`),
 		),
 	},
@@ -150,7 +149,7 @@ func TestEnforceNode(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = tc.matchers.EnforceNode(e)
+			err = tc.enforcer.EnforceNode(e)
 			if err := tc.check(e.String(), err); err != nil {
 				t.Error(err)
 			}

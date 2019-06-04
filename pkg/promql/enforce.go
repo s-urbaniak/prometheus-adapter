@@ -7,17 +7,31 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
-type Matchers map[string]*labels.Matcher
+type Enforcer struct {
+	entries map[string]*labels.Matcher
+}
+
+func NewEnforcer(matchers ...*labels.Matcher) *Enforcer {
+	entries := make(map[string]*labels.Matcher)
+
+	for _, matcher := range matchers {
+		entries[matcher.Name] = matcher
+	}
+
+	return &Enforcer{
+		entries: entries,
+	}
+}
 
 // EnforceNode walks the given node recursively
-// and enforces the given label matchers on it.
+// and enforces the given label enforcer on it.
 //
 // Whenever a promql.MatrixSelector or promql.VectorSelector AST node is found,
-// their label matchers are being potentially modified.
+// their label enforcer are being potentially modified.
 //
-// If a node label matcher equals the name with one of the given matchers,
+// If a node label matcher equals the name with one of the given enforcer,
 // it is being replaced.
-func (ms Matchers) EnforceNode(node promql.Node) error {
+func (ms Enforcer) EnforceNode(node promql.Node) error {
 	switch n := node.(type) {
 	case *promql.EvalStmt:
 		if err := ms.EnforceNode(n.Expr); err != nil {
@@ -32,17 +46,11 @@ func (ms Matchers) EnforceNode(node promql.Node) error {
 		}
 
 	case *promql.AggregateExpr:
-		n.Grouping = ms.enforceLabelNames(n.Grouping)
-
 		if err := ms.EnforceNode(n.Expr); err != nil {
 			return err
 		}
 
 	case *promql.BinaryExpr:
-		if n.VectorMatching != nil {
-			n.VectorMatching.MatchingLabels = ms.enforceLabelNames(n.VectorMatching.MatchingLabels)
-		}
-
 		if err := ms.EnforceNode(n.LHS); err != nil {
 			return err
 		}
@@ -89,28 +97,13 @@ func (ms Matchers) EnforceNode(node promql.Node) error {
 	return nil
 }
 
-func (ms Matchers) enforceMatchers(targets []*labels.Matcher) []*labels.Matcher {
+func (ms Enforcer) enforceMatchers(targets []*labels.Matcher) []*labels.Matcher {
 	var res []*labels.Matcher
 
 	for _, target := range targets {
-		replacement, ok := ms[target.Name]
+		replacement, ok := ms.entries[target.Name]
 		if ok {
 			res = append(res, replacement)
-		} else {
-			res = append(res, target)
-		}
-	}
-
-	return res
-}
-
-func (ms Matchers) enforceLabelNames(targets []string) []string {
-	var res []string
-
-	for _, target := range targets {
-		replacement, ok := ms[target]
-		if ok {
-			res = append(res, replacement.Name)
 		} else {
 			res = append(res, target)
 		}
