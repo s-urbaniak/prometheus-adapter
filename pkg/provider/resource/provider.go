@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	resourcemetrics "github.com/kubernetes-incubator/metrics-server/pkg/provider"
 	prom "github.com/prometheus/client_golang/api/prometheus/v1"
 	prommodel "github.com/prometheus/common/model"
@@ -58,9 +60,14 @@ func (p *provider) GetContainerMetrics(pods ...apitypes.NamespacedName) ([]resou
 		return nil, nil, fmt.Errorf("error parsing cpu expression: %v", err)
 	}
 
-	podsByNs := make(map[string][]string, len(pods))
-	for _, pod := range pods {
-		podsByNs[pod.Namespace] = append(podsByNs[pod.Namespace], pod.Name)
+	memRule, err := p.metricsclient.Get(string(corev1.ResourceMemory), metav1.GetOptions{})
+	if err != nil {
+		return nil, nil, fmt.Errorf("error loading memory resource rules: %v", err)
+	}
+
+	memExpr, err := promql.ParseExpr(memRule.Spec.PodQuery)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error parsing memory expression: %v", err)
 	}
 
 	resources := make(map[string]string)
@@ -87,11 +94,6 @@ func (p *provider) GetContainerMetrics(pods ...apitypes.NamespacedName) ([]resou
 		return nil, nil, fmt.Errorf("error singularizing pod: %v", err)
 	}
 
-	podLabel, ok := resources[podResource]
-	if !ok {
-		return nil, nil, errors.New("no pod label found")
-	}
-
 	nsResource, err := p.mapper.ResourceSingularizer(nsResource.Resource)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error singularizing namespace: %v", err)
@@ -99,10 +101,26 @@ func (p *provider) GetContainerMetrics(pods ...apitypes.NamespacedName) ([]resou
 
 	nsLabel, ok := resources[nsResource]
 	if !ok {
-		return nil, nil, errors.New("no namespace label found")
+		return nil, nil, errors.New("no namespace label found in label spec")
 	}
 
-	for ns, pods := range podsByNs {
+	podsByNs := make(map[string][]string, len(pods))
+	for _, pod := range pods {
+		podsByNs[pod.Namespace] = append(podsByNs[pod.Namespace], pod.Name)
+	}
+
+	podLabel, ok := resources[podResource]
+	if !ok {
+		return nil, nil, errors.New("no pod label found in label spec")
+	}
+
+	type container struct {
+		namespace, pod, container string
+	}
+
+	containerMetrics := make(map[container]*metrics.ContainerMetrics)
+
+	for namespace, pods := range podsByNs {
 		e := adapterql.NewEnforcer(
 			&labels.Matcher{
 				Name:  podLabel,
@@ -112,20 +130,100 @@ func (p *provider) GetContainerMetrics(pods ...apitypes.NamespacedName) ([]resou
 			&labels.Matcher{
 				Name:  nsLabel,
 				Type:  labels.MatchEqual,
-				Value: ns,
+				Value: namespace,
 			},
 		)
+
 		if err := e.EnforceNode(cpuExpr); err != nil {
 			return nil, nil, fmt.Errorf("error enforcing cpu expression: %v", err)
 		}
+
+		cpuValue, err := p.promclient.Query(context.Background(), cpuExpr.String(), time.Now())
+		if err != nil {
+			return nil, nil, fmt.Errorf("error executing mem query: &%v", err)
+		}
+
+		cpuVector, ok := cpuValue.(prommodel.Vector)
+		if !ok {
+			return nil, nil, fmt.Errorf("unsupported cpu value type: %T", cpuValue)
+		}
+
+		earliestTs := prommodel.Latest
+
+		for _, sample := range cpuVector {
+			c := container{
+				namespace: namespace,
+				pod:       string(sample.Metric[prommodel.LabelName(podLabel)]),
+				container: string(sample.Metric[prommodel.LabelName(cpuRule.Spec.ContainerLabel)]),
+			}
+
+			if _, present := containerMetrics[c]; !present {
+				containerMetrics[c] = &metrics.ContainerMetrics{
+					Name:  c.container,
+					Usage: corev1.ResourceList{},
+				}
+			}
+
+			containerMetrics[c].Usage[corev1.ResourceCPU] =
+				*resource.NewMilliQuantity(int64(sample.Value*1000.0), resource.DecimalSI)
+
+			if sample.Timestamp.Before(earliestTs) {
+				earliestTs = sample.Timestamp
+			}
+		}
+
+		if err := e.EnforceNode(memExpr); err != nil {
+			return nil, nil, fmt.Errorf("error enforcing memory expression: %v", err)
+		}
+
+		memValue, err := p.promclient.Query(context.Background(), memExpr.String(), time.Now())
+		if err != nil {
+			return nil, nil, fmt.Errorf("error executing memory query: &%v", err)
+		}
+
+		memVector, ok := memValue.(prommodel.Vector)
+		if !ok {
+			return nil, nil, fmt.Errorf("unsupported prometheus memory value type: %T", cpuValue)
+		}
+
+		for _, sample := range memVector {
+			c := container{
+				namespace: namespace,
+				pod:       string(sample.Metric[prommodel.LabelName(podLabel)]),
+				container: string(sample.Metric[prommodel.LabelName(memRule.Spec.ContainerLabel)]),
+			}
+
+			if _, present := containerMetrics[c]; !present {
+				containerMetrics[c] = &metrics.ContainerMetrics{
+					Name:  c.container,
+					Usage: corev1.ResourceList{},
+				}
+			}
+
+			containerMetrics[c].Usage[corev1.ResourceMemory] =
+				*resource.NewMilliQuantity(int64(sample.Value*1000.0), resource.BinarySI)
+
+			if sample.Timestamp.Before(earliestTs) {
+				earliestTs = sample.Timestamp
+			}
+		}
 	}
 
-	value, err := p.promclient.Query(context.Background(), cpuExpr.String(), time.Now())
-	if value.Type() != prommodel.ValVector {
-		return nil, nil, fmt.Errorf("invalid or empty value of non-vector type (%s) returned", value.Type())
+	podMetrics := make(map[apitypes.NamespacedName][]metrics.ContainerMetrics)
+	for container, metrics := range containerMetrics {
+		pod := apitypes.NamespacedName{
+			Name:      container.pod,
+			Namespace: container.namespace,
+		}
+		podMetrics[pod] = append(podMetrics[pod], *metrics)
 	}
 
-	return nil, nil, nil
+	var res [][]metrics.ContainerMetrics
+	for _, pod := range pods {
+		res = append(res, podMetrics[pod])
+	}
+
+	return nil, res, nil
 }
 
 func (p *provider) GetNodeMetrics(nodes ...string) ([]resourcemetrics.TimeInfo, []corev1.ResourceList, error) {
