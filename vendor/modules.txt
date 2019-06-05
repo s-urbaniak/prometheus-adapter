@@ -255,6 +255,7 @@ k8s.io/client-go/transport
 k8s.io/client-go/util/cert
 k8s.io/client-go/tools/pager
 k8s.io/client-go/util/retry
+k8s.io/client-go/restmapper
 k8s.io/client-go/tools/clientcmd
 k8s.io/client-go/pkg/apis/clientauthentication
 k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
