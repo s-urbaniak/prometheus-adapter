@@ -24,8 +24,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
-	// ResourceRules returns a ResourceRuleInformer.
-	ResourceRules() ResourceRuleInformer
+	// CustomMetrics returns a CustomMetricInformer.
+	CustomMetrics() CustomMetricInformer
 }
 
 type version struct {
@@ -39,7 +39,7 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// ResourceRules returns a ResourceRuleInformer.
-func (v *version) ResourceRules() ResourceRuleInformer {
-	return &resourceRuleInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+// CustomMetrics returns a CustomMetricInformer.
+func (v *version) CustomMetrics() CustomMetricInformer {
+	return &customMetricInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

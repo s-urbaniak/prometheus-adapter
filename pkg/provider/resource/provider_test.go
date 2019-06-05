@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
@@ -13,15 +12,7 @@ import (
 
 	"github.com/prometheus/client_golang/api"
 
-	"k8s.io/apimachinery/pkg/util/wait"
-
-	v1 "k8s.io/api/core/v1"
-
 	metricsapiv1 "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1"
-	metricsclientv1 "github.com/s-urbaniak/prometheus-adapter/pkg/client/clientset/versioned/typed/metrics/v1"
-	apiextensions "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
@@ -48,105 +39,35 @@ func TestGetContainerMetrics(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	apiclient := apiextensions.NewForConfigOrDie(config)
-	crd := metricsapiv1.NewResourceRuleCRD()
-	err = apiclient.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(
-		metricsapiv1.ResourceRules+"."+metricsapiv1.GroupName,
-		&metav1.DeleteOptions{},
-	)
-	if err != nil && !apierrors.IsNotFound(err) {
-		t.Fatal(err)
-	}
+	spec := metricsapiv1.ResourceMetricsSpec{
+		Rules: metricsapiv1.ResourceMetricsRules{
 
-	err = wait.Poll(500*time.Millisecond, 10*time.Second, func() (bool, error) {
-		_, err := apiclient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(
-			metricsapiv1.ResourceRules+"."+metricsapiv1.GroupName,
-			metav1.GetOptions{},
-		)
-		if apierrors.IsNotFound(err) {
-			return finishPoll()
-		}
-		if err != nil {
-			return cancelPoll(err)
-		}
-		return continuePoll()
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = apiclient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
-	if err != nil && !apierrors.IsAlreadyExists(err) {
-		t.Fatal(err)
-	}
-
-	err = wait.Poll(500*time.Millisecond, 10*time.Second, func() (bool, error) {
-		_, err := apiclient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(
-			metricsapiv1.ResourceRules+"."+metricsapiv1.GroupName,
-			metav1.GetOptions{},
-		)
-		if apierrors.IsNotFound(err) {
-			return continuePoll()
-		}
-		if err != nil {
-			return cancelPoll(err)
-		}
-		return finishPoll()
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	metricsclient := metricsclientv1.NewForConfigOrDie(config)
-
-	cpuRule := &metricsapiv1.ResourceRule{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: metricsapiv1.GroupVersion.Version,
-			Kind:       metricsapiv1.ResourceRulesKind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: string(v1.ResourceCPU),
-		},
-		Spec: metricsapiv1.ResourceRuleSpec{
-			NodeQuery: `sum(1 - rate(node_cpu_seconds_total{mode="idle"}[1m]) * on(namespace, pod) group_left(node) node_namespace_pod:kube_pod_info:{node="kind-control-plane"}) by (node)`,
-			PodQuery:  `sum(rate(container_cpu_usage_seconds_total{container_name!="POD",container_name!="",pod_name="alertmanager-main-0",pod_name!="",namespace="monitoring"}[1m])) by (container_name,pod_name,namespace)`,
-			Labels: map[string]metricsapiv1.GroupResource{
-				"pod_name":  {Resource: "pod"},
-				"namespace": {Resource: "namespace"},
-				"node":      {Resource: "node"},
+			CPU: metricsapiv1.ResourceMetricsRule{
+				ContainerLabel: "container_name",
+				Labels: map[string]metricsapiv1.GroupResource{
+					"pod_name":  {Resource: "pod"},
+					"namespace": {Resource: "namespace"},
+					"node":      {Resource: "node"},
+				},
+				Queries: metricsapiv1.Queries{
+					Pod:  `sum(rate(container_cpu_usage_seconds_total{container_name!="POD",container_name!="",pod_name="alertmanager-main-0",pod_name!="",namespace="monitoring"}[1m])) by (container_name,pod_name,namespace)`,
+					Node: `sum(1 - rate(node_cpu_seconds_total{mode="idle"}[1m]) * on(namespace, pod) group_left(node) node_namespace_pod:kube_pod_info:{node="kind-control-plane"}) by (node)`,
+				},
 			},
-			ContainerLabel: "container_name",
-		},
-	}
 
-	cpuRule, err = metricsclient.ResourceRules().Create(cpuRule)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	memRule := &metricsapiv1.ResourceRule{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: metricsapiv1.GroupVersion.Version,
-			Kind:       metricsapiv1.ResourceRulesKind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: string(v1.ResourceMemory),
-		},
-		Spec: metricsapiv1.ResourceRuleSpec{
-			NodeQuery: `sum(node:node_memory_bytes_total:sum{node="kind-control-plane"} - node:node_memory_bytes_available:sum{node="kind-control-plane"}) by (node)`,
-			PodQuery:  `sum(container_memory_working_set_bytes{pod_name="alertmanager-main-0",namespace="monitoring",container_name!="POD",container_name!="",pod_name!=""}) by (pod_name,namespace,container_name)`,
-			Labels: map[string]metricsapiv1.GroupResource{
-				"pod_name":  {Resource: "pod"},
-				"namespace": {Resource: "namespace"},
-				"node":      {Resource: "node"},
+			Memory: metricsapiv1.ResourceMetricsRule{
+				ContainerLabel: "container_name",
+				Labels: map[string]metricsapiv1.GroupResource{
+					"pod_name":  {Resource: "pod"},
+					"namespace": {Resource: "namespace"},
+					"node":      {Resource: "node"},
+				},
+				Queries: metricsapiv1.Queries{
+					Pod:  `sum(container_memory_working_set_bytes{pod_name="alertmanager-main-0",namespace="monitoring",container_name!="POD",container_name!="",pod_name!=""}) by (pod_name,namespace,container_name)`,
+					Node: `sum(node:node_memory_bytes_total:sum{node="kind-control-plane"} - node:node_memory_bytes_available:sum{node="kind-control-plane"}) by (node)`,
+				},
 			},
-			ContainerLabel: "container_name",
 		},
-	}
-
-	memRule, err = metricsclient.ResourceRules().Create(memRule)
-	if err != nil {
-		t.Fatal(err)
 	}
 
 	client, err := api.NewClient(api.Config{Address: "http://localhost:9090"})
@@ -161,9 +82,9 @@ func TestGetContainerMetrics(t *testing.T) {
 	mapper := restmapper.NewDiscoveryRESTMapper(resources)
 
 	p := NewProvider(
-		metricsclient.ResourceRules(),
 		mapper,
 		promapi.NewAPI(client),
+		spec,
 	)
 
 	_, metrics, err := p.GetContainerMetrics(types.NamespacedName{

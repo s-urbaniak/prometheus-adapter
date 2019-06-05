@@ -28,8 +28,8 @@ type FakeMetricsV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeMetricsV1) ResourceRules() v1.ResourceRuleInterface {
-	return &FakeResourceRules{c}
+func (c *FakeMetricsV1) CustomMetrics() v1.CustomMetricInterface {
+	return &FakeCustomMetrics{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

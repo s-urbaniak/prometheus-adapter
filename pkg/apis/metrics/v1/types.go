@@ -21,42 +21,21 @@ import (
 )
 
 const (
-	ResourceRuleSpecName = "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1.ResourceRule"
-	ResourceRulesKind    = "ResourceRule"
+	ResourceRuleSpecName = "github.com/s-urbaniak/prometheus-adapter/pkg/apis/metrics/v1.CustomMetric"
+	ResourceRulesKind    = "CustomMetric"
 	ResourceRules        = "resourcerules"
 )
 
-// ResourceRule describes a rule for querying resource metrics API results.
-// The name of the resource rule reflects the actual resource, i.e. cpu, memory.
+// CustomMetric describes a custom metrics query.
+// The name of the resource rule reflects the target metric name.
 //
 // +genclient
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type ResourceRule struct {
+type CustomMetric struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec ResourceRuleSpec `json:"spec"`
-}
-
-// ResourceRuleList is a list of ResourceRules.
-//
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
-type ResourceRuleList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []*ResourceRule `json:"items"`
-}
-
-// +k8s:openapi-gen=true
-type ResourceRuleSpec struct {
-	NodeQuery      string                   `json:"nodeQuery"`
-	PodQuery       string                   `json:"podQuery"`
-	Labels         map[string]GroupResource `json:"labels"`
-	ContainerLabel string                   `json:"containerLabel"`
-	Window         metav1.Duration          `json:"window"`
 }
 
 // +k8s:openapi-gen=true

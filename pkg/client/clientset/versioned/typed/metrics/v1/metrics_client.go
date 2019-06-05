@@ -27,7 +27,7 @@ import (
 
 type MetricsV1Interface interface {
 	RESTClient() rest.Interface
-	ResourceRulesGetter
+	CustomMetricsGetter
 }
 
 // MetricsV1Client is used to interact with features provided by the metrics.prometheus.io group.
@@ -35,8 +35,8 @@ type MetricsV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *MetricsV1Client) ResourceRules() ResourceRuleInterface {
-	return newResourceRules(c)
+func (c *MetricsV1Client) CustomMetrics() CustomMetricInterface {
+	return newCustomMetrics(c)
 }
 
 // NewForConfig creates a new MetricsV1Client for the given config.

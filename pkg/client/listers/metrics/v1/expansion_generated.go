@@ -18,6 +18,6 @@ limitations under the License.
 
 package v1
 
-// ResourceRuleListerExpansion allows custom methods to be added to
-// ResourceRuleLister.
-type ResourceRuleListerExpansion interface{}
+// CustomMetricListerExpansion allows custom methods to be added to
+// CustomMetricLister.
+type CustomMetricListerExpansion interface{}

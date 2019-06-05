@@ -31,58 +31,58 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// ResourceRuleInformer provides access to a shared informer and lister for
-// ResourceRules.
-type ResourceRuleInformer interface {
+// CustomMetricInformer provides access to a shared informer and lister for
+// CustomMetrics.
+type CustomMetricInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1.ResourceRuleLister
+	Lister() v1.CustomMetricLister
 }
 
-type resourceRuleInformer struct {
+type customMetricInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
-// NewResourceRuleInformer constructs a new informer for ResourceRule type.
+// NewCustomMetricInformer constructs a new informer for CustomMetric type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewResourceRuleInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredResourceRuleInformer(client, resyncPeriod, indexers, nil)
+func NewCustomMetricInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredCustomMetricInformer(client, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredResourceRuleInformer constructs a new informer for ResourceRule type.
+// NewFilteredCustomMetricInformer constructs a new informer for CustomMetric type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredResourceRuleInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredCustomMetricInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.MetricsV1().ResourceRules().List(options)
+				return client.MetricsV1().CustomMetrics().List(options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.MetricsV1().ResourceRules().Watch(options)
+				return client.MetricsV1().CustomMetrics().Watch(options)
 			},
 		},
-		&metricsv1.ResourceRule{},
+		&metricsv1.CustomMetric{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *resourceRuleInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredResourceRuleInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *customMetricInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredCustomMetricInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *resourceRuleInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&metricsv1.ResourceRule{}, f.defaultInformer)
+func (f *customMetricInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&metricsv1.CustomMetric{}, f.defaultInformer)
 }
 
-func (f *resourceRuleInformer) Lister() v1.ResourceRuleLister {
-	return v1.NewResourceRuleLister(f.Informer().GetIndexer())
+func (f *customMetricInformer) Lister() v1.CustomMetricLister {
+	return v1.NewCustomMetricLister(f.Informer().GetIndexer())
 }

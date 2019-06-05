@@ -53,8 +53,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=metrics.prometheus.io, Version=v1
-	case v1.SchemeGroupVersion.WithResource("resourcerules"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Metrics().V1().ResourceRules().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("custommetrics"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Metrics().V1().CustomMetrics().Informer()}, nil
 
 	}
 
